@@ -25,3 +25,10 @@ jobs:
             -o /tmp/test_packet_regression
       - name: Execute CRC mode and parsing tests
         run: /tmp/test_packet_regression
+      - name: Compile and execute 0-128-byte boundary tests
+        run: |
+          cc -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude \
+            tests/test_payload_boundaries.c \
+            src/packet_reader.c src/packet_validator.c src/crc16.c src/hex_utils.c \
+            -o /tmp/test_payload_boundaries
+          /tmp/test_payload_boundaries
