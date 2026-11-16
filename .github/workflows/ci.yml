@@ -1,0 +1,34 @@
+name: C packet compatibility CI
+
+on:
+  push:
+    branches: [main, "fix/**", "feat/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  c11-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile legacy program with strict format checks
+        run: |
+          make clean
+          make CC=cc CFLAGS="-std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude"
+      - name: Run legacy demo
+        run: make run CC=cc CFLAGS="-std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude"
+      - name: Compile regression tests
+        run: |
+          cc -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude \
+            tests/test_packet_regression.c \
+            src/packet_reader.c src/packet_validator.c src/crc16.c src/hex_utils.c \
+            -o /tmp/test_packet_regression
+      - name: Execute CRC mode and parsing tests
+        run: /tmp/test_packet_regression
+      - name: Compile and execute 0-128-byte boundary tests
+        run: |
+          cc -std=c11 -Wall -Wextra -Wpedantic -Werror -Iinclude \
+            tests/test_payload_boundaries.c \
+            src/packet_reader.c src/packet_validator.c src/crc16.c src/hex_utils.c \
+            -o /tmp/test_payload_boundaries
+          /tmp/test_payload_boundaries
